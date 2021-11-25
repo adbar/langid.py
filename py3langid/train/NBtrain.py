@@ -1,6 +1,3 @@
-#!/usr/bin/env python
-from __future__ import print_function
-
 """
 NBtrain.py -
 Model generator for langid.py
@@ -46,10 +43,12 @@ import tempfile
 import marshal
 import atexit, shutil
 import multiprocessing as mp
+
 from collections import deque, defaultdict
 from contextlib import closing
 
 from common import chunk, unmarshal_iter, read_features, index, MapPool
+
 
 def offsets(chunks):
     # Work out the path chunk start offsets
@@ -65,6 +64,7 @@ def state_trace(path):
     global __nm_arr
     c = defaultdict(int)
     state = 0
+
     with open(path) as f:
         text = f.read()
         for letter in map(ord,text):
@@ -204,11 +204,13 @@ def learn_ptc(paths, tk_nextmove, tk_output, cm, temp_path, args):
 
     prod = np.zeros((num_features, cm.shape[1]), dtype=int)
     prod[np.concatenate(ids)] = np.vstack(prods)
+
     ptc = np.log(1 + prod) - np.log(num_features + prod.sum(0))
 
     nb_ptc = array.array('d')
     for term_dist in ptc.tolist():
         nb_ptc.extend(term_dist)
+
     return nb_ptc
 
 @atexit.register
@@ -284,4 +286,5 @@ if __name__ == "__main__":
     string = base64.b64encode(bz2.compress(cPickle.dumps(model)))
     with open(output_path, 'w') as f:
         f.write(string)
+
     print("wrote model to %s (%d bytes)" % (output_path, len(string)))

@@ -1,6 +1,3 @@
-#!/usr/bin/env python
-from __future__ import print_function
-
 """
 LDfeatureselect.py -
 LD (Lang-Domain) feature extractor
@@ -72,7 +69,7 @@ def select_LD_features(ig_lang, ig_domain, feats_per_lang, ignore_domain=False):
 
     terms = sorted(term_index, key=term_index.get)
     # compile the final feature set
-    selected_features = dict()
+    selected_features = {}
     for lang_id, lang_w in enumerate(ld):
         term_inds = numpy.argsort(lang_w)[-feats_per_lang:]
         selected_features[lang_id] = [terms[t] for t in term_inds]

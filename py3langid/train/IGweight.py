@@ -1,6 +1,3 @@
-#!/usr/bin/env python
-from __future__ import print_function
-
 """
 IGWeight.py -
 Compute IG Weights given a set of tokenized buckets and a feature set
@@ -234,6 +231,7 @@ if __name__ == "__main__":
     print("suffix:", suffix)
 
     print("computing information gain")
+
     dist = read_dist(index_path)
     ig = compute_IG(bucketlist, features, dist, args.binarize, suffix, args.jobs)
 

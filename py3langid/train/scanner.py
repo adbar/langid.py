@@ -1,6 +1,3 @@
-#!/usr/bin/env python
-from __future__ import print_function
-
 """
 scanner.py -
 Assemble a "feature scanner" using Aho-Corasick string matching.

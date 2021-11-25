@@ -1,5 +1,3 @@
-#!/usr/bin/env python
-from __future__ import print_function
 """
 DFfeatureselect.py -
 First step in the LD feature selection process, select features based on document
@@ -168,6 +166,7 @@ if __name__ == "__main__":
     else:
         # Choose a number of features overall
         feats = sorted( sorted(doc_count, key=doc_count.get, reverse=True)[:args.tokens] )
+
     print("selected features: ", len(feats))
 
     write_features(feats, feature_path)

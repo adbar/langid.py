@@ -1,5 +1,3 @@
-#!/usr/bin/env python
-from __future__ import print_function
 """
 Common functions
 
@@ -52,6 +50,7 @@ def makedir(path):
             raise
 
 import csv
+
 def write_weights(weights, path):
     w = dict(weights)
     with open(path, 'w') as f:
@@ -75,7 +74,7 @@ import numpy
 def read_weights(path):
     with open(path) as f:
         reader = csv.reader(f)
-        retval = dict()
+        retval = {}
         for row in reader:
             key = eval(row[0])
             #val = numpy.array( map(float,row[1:]) )
@@ -111,8 +110,7 @@ def index(seq):
     @param seq the sequence to index
     @returns a dictionary from item to position in the sequence
     """
-    return dict((k,v) for (v,k) in enumerate(seq))
-
+    return {(k,v) for (v,k) in enumerate(seq)}
 
 
 from itertools import imap

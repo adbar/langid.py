@@ -1,6 +1,3 @@
-#!/usr/bin/env python
-from __future__ import print_function
-
 """
 index.py -
 Index a corpus that is stored in a directory hierarchy as follows:
@@ -85,7 +82,7 @@ class CorpusIndexer(object):
             self.lang_index = defaultdict(Enumerator())
         else:
             # pre-specified lang set
-            self.lang_index = dict((k,v) for v,k in enumerate(langs))
+            self.lang_index = {(k,v) for v,k in enumerate(langs)}
 
         if domains is None:
             self.domain_index = defaultdict(Enumerator())
@@ -128,6 +125,7 @@ class CorpusIndexer(object):
 
                     # add the item to our list
                     self.items.append((domain_id,lang_id,docname,path))
+
 
     def prune_min_domain(self, min_domain):
         # prune files for all languages that do not occur in at least min_domain

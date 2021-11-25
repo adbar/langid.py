@@ -1,6 +1,100 @@
-================
-``langid.py`` readme
-================
+=============
+``py3langid``
+=============
+
+
+``py3langid`` is a fork of the standalone language identification tool ``langid.py`` by Marco Lui.
+
+Original license: BSD-2-Clause. Fork license: BSD-3-Clause.
+
+
+
+Changes in this fork
+--------------------
+
+Execution speed has been improved and the code base has been optimized for Python 3.6+:
+
+- Loading the module with ``import`` is now about 10x faster
+- Language detection with ``langid.classify`` is now about 2.5x faster
+
+
+Usage
+-----
+
+Drop-in replacement
+~~~~~~~~~~~~~~~~~~~
+
+
+1. Install the package:
+
+   * ``pip3 install py3langid`` (or ``pip`` where applicable)
+
+2. Use it:
+
+   * with Python: ``import py3langid as langid``
+   * on the command-line: ``langid``
+
+
+With Python
+~~~~~~~~~~~
+
+Basics:
+
+.. code-block:: python
+
+    >>> import py3langid as langid
+    
+    >>> text = 'This text is in English.'
+    # identified language and probability
+    >>> langid.classify(text)
+    ('en', -56.77428913116455)
+    # unpack the result tuple in variables
+    >>> lang, prob = langid.classify(text)
+    # all potential languages
+    >>> langid.rank(text)
+
+
+More options:
+
+.. code-block:: python
+
+    >>> from py3langid.langid import LanguageIdentifier, MODEL_FILE
+
+    # subset of target languages
+    >>> identifier = LanguageIdentifier.from_pickled_model(MODEL_FILE)
+    >>> identifier.set_languages(['de', 'en', 'fr'])
+    # this won't work well...
+    >>> identifier.classify('这样不好')
+    ('en', -81.83166265487671)
+
+    # normalization of probabilities to an interval between 0 and 1
+    >>> identifier = LanguageIdentifier.from_pickled_model(MODEL_FILE, norm_probs=True)
+    >>> identifier.classify('This should be enough text.'))
+    ('en', 1.0)
+
+
+On the command-line
+~~~~~~~~~~~~~~~~~~~
+
+.. code-block:: bash
+
+    # basic usage with probability normalization
+    $ echo "This should be enough text." | langid -n
+    ('en', 1.0)
+
+    # define a subset of target languages
+    $ echo "This won't be recognized properly." | langid -n -l fr,it,tr
+    ('it', 0.9703832808613264)
+
+(This might not work on Windows systems.)
+
+
+Legacy documentation
+--------------------
+
+
+**The docs below are provided for reference, only part of the functions are currently tested and maintained.**
+
 
 Introduction
 ------------
@@ -15,7 +109,10 @@ The design principles are as follows:
 4. Single .py file with minimal dependencies
 5. Deployable as a web service
 
-All that is required to run ``langid.py`` is >= Python 2.5 and numpy.  
+All that is required to run ``langid.py`` is Python >= 3.6 and numpy. 
+
+The accompanying training tools are still Python2-only.
+
 ``langid.py`` is WSGI-compliant.  ``langid.py`` will use ``fapws3`` as a web server if 
 available, and default to ``wsgiref.simple_server`` otherwise.
 
@@ -44,9 +141,9 @@ The training data was drawn from 5 different sources:
 Usage
 -----
 
-    langid.py [options]
+    langid [options]
 
-Options:
+optional arguments:
   -h, --help            show this help message and exit
   -s, --serve           launch web service
   --host=HOST           host/ip to bind to
@@ -68,24 +165,29 @@ Options:
 The simplest way to use ``langid.py`` is as a command-line tool, and you can 
 invoke using ``python langid.py``. If you installed ``langid.py`` as a Python 
 module (e.g. via ``pip install langid``), you can invoke ``langid`` instead of 
-``python langid.py`` (the two are equivalent).  This will cause a prompt to 
+``python langid.py -n`` (the two are equivalent).  This will cause a prompt to 
 display. Enter text to identify, and hit enter::
 
   >>> This is a test
-  ('en', 0.99999999099035441)
+  ('en', -54.41310358047485)
   >>> Questa e una prova
-  ('it', 0.98569847366134222)
+  ('it', -35.41771221160889)
+
 
 ``langid.py`` can also detect when the input is redirected (only tested under Linux), and in this
 case will process until EOF rather than until newline like in interactive mode::
 
-  python langid.py < readme.rst 
+  python langid.py < README.rst 
+  ('en', -22552.496054649353)
+
+
+The value returned is the unnormalized probability estimate for the language. Calculating 
+the exact probability estimate is disabled by default, but can be enabled through a flag::
+
+  python langid.py -n < README.rst 
   ('en', 1.0)
 
-The value returned is the probability estimate for the language. Calculating 
-the exact probability estimate is not actually necessary for classification, 
-and can be disabled for a slight performance boost. More details are provided
-in the section on `Probability Normalization`.
+More details are provided in this README in the section on `Probability Normalization`.
 
 You can also use ``langid.py`` as a Python library::
 
@@ -95,7 +197,7 @@ You can also use ``langid.py`` as a Python library::
   Type "help", "copyright", "credits" or "license" for more information.
   >>> import langid
   >>> langid.classify("This is a test")
-  ('en', 0.99999999099035441)
+  ('en', -54.41310358047485)
   
 Finally, ``langid.py`` can use Python's built-in ``wsgiref.simple_server`` (or ``fapws3`` if available) to
 provide language identification as a web service. To do this, launch ``python langid.py -s``, and
@@ -104,12 +206,12 @@ with no data, a simple HTML forms interface is displayed.
 
 The response is generated in JSON, here is an example::
 
-  {"responseData": {"confidence": 0.99999999099035441, "language": "en"}, "responseDetails": null, "responseStatus": 200}
+  {"responseData": {"confidence": -54.41310358047485, "language": "en"}, "responseDetails": null, "responseStatus": 200}
 
 A utility such as curl can be used to access the web service::
 
   # curl -d "q=This is a test" localhost:9008/detect
-  {"responseData": {"confidence": 0.99999999099035441, "language": "en"}, "responseDetails": null, "responseStatus": 200}
+  {"responseData": {"confidence": -54.41310358047485, "language": "en"}, "responseDetails": null, "responseStatus": 200}
 
 You can also use HTTP PUT::
 
@@ -117,22 +219,22 @@ You can also use HTTP PUT::
     % Total    % Received % Xferd  Average Speed   Time    Time     Time  Current
                                  Dload  Upload   Total   Spent    Left  Speed
   100  2871  100   119  100  2752    117   2723  0:00:01  0:00:01 --:--:--  2727
-  {"responseData": {"confidence": 1.0, "language": "en"}, "responseDetails": null, "responseStatus": 200}
+  {"responseData": {"confidence": -22552.496054649353, "language": "en"}, "responseDetails": null, "responseStatus": 200}
 
 If no "q=XXX" key-value pair is present in the HTTP POST payload, ``langid.py`` will interpret the entire
 file as a single query. This allows for redirection via curl::
 
   # echo "This is a test" | curl -d @- localhost:9008/detect
-  {"responseData": {"confidence": 0.99999999099035441, "language": "en"}, "responseDetails": null, "responseStatus": 200}
+  {"responseData": {"confidence": -54.41310358047485, "language": "en"}, "responseDetails": null, "responseStatus": 200}
 
 ``langid.py`` will attempt to discover the host IP address automatically. Often, this is set to localhost(127.0.1.1), even 
 though the machine has a different external IP address. ``langid.py`` can attempt to automatically discover the external
 IP address. To enable this functionality, start ``langid.py`` with the ``-r`` flag.
 
 ``langid.py`` supports constraining of the output language set using the ``-l`` flag and a comma-separated list of ISO639-1 
-language codes::
+language codes (the ``-n`` flag enables probability normalization)::
 
-  # python langid.py -l it,fr
+  # python langid.py -n -l it,fr
   >>> Io non parlo italiano
   ('it', 0.99999999988965627)
   >>> Je ne parle pas français
@@ -156,7 +258,18 @@ When using ``langid.py`` as a library, the set_languages method can be used to c
   >>> langid.classify("I do not speak english")
   ('en', 0.99176190378750373)
 
-.. Probability Normalization
+
+Batch Mode
+----------
+
+``langid.py`` supports batch mode processing, which can be invoked with the ``-b`` flag.
+In this mode, ``langid.py`` reads a list of paths to files to classify as arguments.
+If no arguments are supplied, ``langid.py`` reads the list of paths from ``stdin``,
+this is useful for using ``langid.py`` with UNIX utilities such as ``find``.
+
+In batch mode, ``langid.py`` uses ``multiprocessing`` to invoke multiple instances of
+the classifier, utilizing all available CPUs to classify documents in parallel. 
+
 
 Probability Normalization
 -------------------------
@@ -170,129 +283,27 @@ of candidate languages. However, users sometimes find it helpful to have a "conf
 score for the probability prediction. Thus, ``langid.py`` implements a re-normalization
 that produces an output in the 0-1 range.
 
-For command-line usages of ``langid.py``, the default behaviour is to disable
-probability normalization. It can be enabled by passing the ``-n`` flag. For
-library use, the default behaviour is to enable it. To disable it, the user
-must instantiate their own ``LanguageIdentifier``. An example of such usage is as follows::
+``langid.py`` disables probability normalization by default. For
+command-line usages of ``langid.py``, it can be enabled by passing the ``-n`` flag. For
+probability normalization in library use, the user must instantiate their own 
+``LanguageIdentifier``. An example of such usage is as follows::
   
-  >> from langid.langid import LanguageIdentifier, model
-  >> identifier = LanguageIdentifier.from_modelstring(model, norm_probs=False)
+  >> from py3langid.langid import LanguageIdentifier, MODEL_FILE
+  >> identifier = LanguageIdentifier.from_pickled_model(MODEL_FILE, norm_probs=True)
   >> identifier.classify("This is a test")
-  ('en', -54.41310358047485)
+  ('en', 0.9999999909903544)
 
 
 Training a model
 ----------------
-We provide a full set of training tools to train a model for ``langid.py`` 
-on user-supplied data.  The system is parallelized to fully utilize modern 
-multiprocessor machines, using a sharding technique similar to MapReduce to 
-allow parallelization while running in constant memory.
 
-The full training can be performed using the tool ``train.py``. For 
-research purposes, the process has been broken down into indiviual steps, 
-and command-line drivers for each step are provided. This allows the user 
-to inspect the intermediates produced, and also allows for some parameter 
-tuning without repeating some of the more expensive steps in the 
-computation. By far the most expensive step is the computation of 
-information gain, which will make up more than 90% of the total computation 
-time.
-
-The tools are:
-
-1. index.py  - index a corpus. Produce a list of file, corpus, language pairs.
-2. tokenize.py - take an index and tokenize the corresponding files
-3. DFfeatureselect.py - choose features by document frequency
-4. IGweight.py - compute the IG weights for language and for domain
-5. LDfeatureselect.py - take the IG weights and use them to select a feature set
-6. scanner.py - build a scanner on the basis of a feature set
-7. NBtrain.py - learn NB parameters using an indexed corpus and a scanner
-
-The tools can be found in ``langid/train`` subfolder. 
-
-Each tool can be called with ``--help`` as the only parameter to provide an overview of the 
-functionality. 
-
-To train a model, we require multiple corpora of monolingual documents. Each document should 
-be a single file, and each file should be in a 2-deep folder hierarchy, with language nested 
-within domain. For example, we may have a number of English files:
-
-    ./corpus/domain1/en/File1.txt
-    ./corpus/domainX/en/001-file.xml
-
-To use default settings, very few parameters need to be provided. Given a corpus in the format
-described above at ``./corpus``, the following is an example set of invocations that would
-result in a model being trained, with a brief description of what each step 
-does.
-
-To build a list of training documents::
-
-    python index.py ./corpus
-
-This will create a directory ``corpus.model``, and produces a list of paths to documents in the
-corpus, with their associated language and domain.
-
-We then tokenize the files using the default byte n-gram tokenizer::
-
-    python tokenize.py corpus.model
-
-This runs each file through the tokenizer, tabulating the frequency of each token according
-to language and domain. This information is distributed into buckets according to a hash
-of the token, such that all the counts for any given token will be in the same bucket.
-
-The next step is to identify the most frequent tokens by document 
-frequency::
-
-    python DFfeatureselect.py corpus.model
-
-This sums up the frequency counts per token in each bucket, and produces a list of the highest-df
-tokens for use in the IG calculation stage. Note that this implementation of DFfeatureselect
-assumes byte n-gram tokenization, and will thus select a fixed number of features per ngram order.
-If tokenization is replaced with a word-based tokenizer, this should be replaced accordingly.
-
-We then compute the IG weights of each of the top features by DF. This is computed separately
-for domain and for language::
-
-    python IGweight.py -d corpus.model
-    python IGweight.py -lb corpus.model
-
-Based on the IG weights, we compute the LD score for each token::
-
-    python LDfeatureselect.py corpus.model
-
-This produces the final list of LD features to use for building the NB model.
-
-We then assemble the scanner::
-
-    python scanner.py corpus.model
-
-The scanner is a compiled DFA over the set of features that can be used to 
-count the number of times each of the features occurs in a document in a 
-single pass over the document. This DFA is built using Aho-Corasick string 
-matching.
-
-Finally, we learn the actual Naive Bayes parameters::
-
-    python NBtrain.py corpus.model
-
-This performs a second pass over the entire corpus, tokenizing it with the scanner from the previous
-step, and computing the Naive Bayes parameters P(C) and p(t|C). It then compiles the parameters
-and the scanner into a model compatible with ``langid.py``. 
-
-In this example, the final model will be at the following path::
-
-  ./corpus.model/model
-
-This model can then be used in ``langid.py`` by invoking it with the ``-m`` command-line option as 
-follows:
-
-    python langid.py -m ./corpus.model/model
-
-It is also possible to edit ``langid.py`` directly to embed the new model string.
+So far Python 2.7 only, see the `original instructions <https://github.com/saffsd/langid.py#training-a-model>`_.
 
 
 Read more
 ---------
-``langid.py`` is based on our published research. [1] describes the LD feature selection technique in detail,
+
+``langid.py`` is based on published research. [1] describes the LD feature selection technique in detail,
 and [2] provides more detail about the module ``langid.py`` itself.
 
 [1] Lui, Marco and Timothy Baldwin (2011) Cross-domain Feature Selection for Language Identification, 
@@ -302,38 +313,3 @@ Chiang Mai, Thailand, pp. 553—561. Available from http://www.aclweb.org/anthol
 [2] Lui, Marco and Timothy Baldwin (2012) langid.py: An Off-the-shelf Language Identification Tool, 
 In Proceedings of the 50th Annual Meeting of the Association for Computational Linguistics (ACL 2012), 
 Demo Session, Jeju, Republic of Korea. Available from www.aclweb.org/anthology/P12-3005
-
-Contact
--------
-Marco Lui <saffsd@gmail.com> http://www.csse.unimelb.edu.au/~mlui
-
-I appreciate any feedback, and I'm particularly interested in hearing about 
-places where ``langid.py`` is being used. I would love to know more about 
-situations where you have found that ``langid.py`` works well, and about
-any shortcomings you may have found.
-
-Acknowledgements
-----------------
-Thanks to aitzol for help with packaging ``langid.py`` for PyPI.
-
-Related Implementations
------------------------
-Dawid Weiss has ported langid.py to Java, with a particular focus on
-speed and memory use. Available from https://github.com/carrotsearch/langid-java
-
-Changelog
----------
-v1.0: 
-  * Initial release
-
-v1.1:
-  * Reorganized internals to implement a LanguageIdentifier class
-
-v1.1.2:
-  * Added a 'langid' entry point
-
-v1.1.3:
-  * Made `classify` and `rank` return Python data types rather than numpy ones
-
-v1.1.4:
-  * Added set_languages to __init__.py, fixing #10 (and properly fixing #8)

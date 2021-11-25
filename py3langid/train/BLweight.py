@@ -1,5 +1,3 @@
-#!/usr/bin/env python
-from __future__ import print_function
 """
 Implementing the "blacklist" feature weighting metric proposed by
 Tiedemann & Ljubesic.
@@ -97,6 +95,7 @@ if __name__ == "__main__":
         raise ValueError("found no files!")
 
     print("will process {0} features across {1} paths".format(len(feats), len(items)))
+    print "will process {0} features across {1} paths".format(len(feats), len(items))
 
     # produce a scanner over all the features
     tk_nextmove, tk_output = build_scanner(feats)

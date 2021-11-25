@@ -1,6 +1,3 @@
-#!/usr/bin/env python
-from __future__ import print_function
-
 """
 train.py -
 All-in-one tool for easy training of a model for langid.py. This depends on the
@@ -56,6 +53,7 @@ from DFfeatureselect import tally, ngram_select
 from IGweight import compute_IG
 from LDfeatureselect import select_LD_features
 from scanner import build_scanner, Scanner
+
 from NBtrain import generate_cm, learn_pc, learn_ptc
 
 if __name__ == "__main__":
@@ -196,6 +194,7 @@ if __name__ == "__main__":
         if DFfeats is None:
             # Choose the first-stage features
             DFfeats = ngram_select(doc_count, args.max_order, args.df_tokens)
+        doc_count = None
 
         if args.debug:
             feature_path = os.path.join(model_dir, 'DFfeats')
@@ -214,12 +213,15 @@ if __name__ == "__main__":
         # over the first-pass counts.
         DF_scanner = Scanner(DFfeats)
         b_dirs = build_index(items, DF_scanner, buckets_dir, args.buckets, args.jobs, args.chunksize)
+        DF_scanner = None
 
         # Build vectors of domain and language distributions for use in IG calculation
         domain_dist_vec = numpy.array([ domain_dist[domain_index[d]]
                 for d in sorted(domain_index, key=domain_index.get)], dtype=int)
+        domain_dist = None
         lang_dist_vec = numpy.array([ lang_dist[lang_index[l]]
                 for l in sorted(lang_index.keys(), key=lang_index.get)], dtype=int)
+        lang_dist = None
 
         # Compute IG
         ig_params = [
@@ -237,8 +239,11 @@ if __name__ == "__main__":
                 write_weights(ig, weights_path)
             ig_vals[label] = dict((row[0], numpy.array(row[1].flat)) for row in ig)
 
+        ig = None
+        DFfeats = None
         # Select features according to the LD criteria
         features_per_lang = select_LD_features(ig_vals['lang'], ig_vals.get('domain'), args.feats_per_lang, ignore_domain = args.no_domain_ig)
+        ig_vals = None
         LDfeats = reduce(set.union, map(set, features_per_lang.values()))
         print('selected %d features' % len(LDfeats))
 
@@ -251,7 +256,9 @@ if __name__ == "__main__":
                 writer = csv.writer(f)
                 for i in range(len(features_per_lang)):
                     writer.writerow(map(repr,features_per_lang[i]))
+
             print('wrote LD.perlang features to "%s"' % feature_path + '.perlang')
+        features_per_lang = None
 
     # Compile a scanner for the LDfeats
     tk_nextmove, tk_output = build_scanner(LDfeats)
@@ -259,10 +266,14 @@ if __name__ == "__main__":
         scanner_path = feature_path + '.scanner'
         with open(scanner_path, 'w') as f:
             cPickle.dump((tk_nextmove, tk_output, LDfeats), f)
+
         print("wrote scanner to {0}".format(scanner_path))
+
+    LDfeats = None
 
     # Assemble the NB model
     langs = sorted(lang_index, key=lang_index.get)
+    lang_index = None
 
     cm = generate_cm([ (l,p) for d,l,p in items], len(langs))
     paths = zip(*items)[2]
@@ -277,6 +288,7 @@ if __name__ == "__main__":
     string = base64.b64encode(bz2.compress(cPickle.dumps(model)))
     with open(output_path, 'w') as f:
         f.write(string)
+
     print("wrote model to %s (%d bytes)" % (output_path, len(string)))
 
     # remove buckets if debug is off. We don't generate buckets if ldfeats is supplied.

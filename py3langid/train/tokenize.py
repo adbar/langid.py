@@ -1,6 +1,3 @@
-#!/usr/bin/env python
-from __future__ import print_function
-
 """
 tokenize.py -
 Tokenizer for langid.py training system. This takes a list of files and tokenizes them
@@ -39,6 +36,8 @@ or implied, of the copyright holder.
 # Default values
 # Can be overriden with command-line options
 ######
+
+MIN_NGRAM_ORDER = 1 # smallest order of n-grams to consider
 MAX_NGRAM_ORDER = 4 # largest order of n-grams to consider
 TOP_DOC_FREQ = 15000 # number of tokens to consider for each order
 NUM_BUCKETS = 64 # number of buckets to use in k-v pair generation
@@ -48,6 +47,7 @@ import os, sys, argparse
 import csv
 import shutil
 import tempfile
+
 import marshal
 import multiprocessing as mp
 import random
@@ -68,7 +68,7 @@ class NGramTokenizer(object):
         max_order = self.max_order
         t = tee(seq, max_order)
         for i in xrange(max_order):
-            for j in xrange(i):
+            for _ in xrange(i):
                 # advance iterators, ignoring result
                 t[i].next()
         while True:
@@ -210,7 +210,6 @@ if __name__ == "__main__":
     group.add_argument("--sample_count", type=int, help="number of samples for sampling-based tokenization", default=None)
 
     args = parser.parse_args()
-
 
     if args.temp:
         buckets_dir = args.temp
