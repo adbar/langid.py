@@ -131,7 +131,7 @@ def pass_IG(buckets):
     else:
         # binarized event space
         # Compute IG binarized with respect to each event
-        ig = list()
+        ig = []
         for event_id in xrange(num_event):
             num_doc = __dist.sum()
             prior = numpy.array((num_doc - __dist[event_id], __dist[event_id]), dtype=float) / num_doc

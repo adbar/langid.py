@@ -152,7 +152,7 @@ class LanguageIdentifier:
         filepath = str(Path(__file__).parent / pickled_file)
         with lzma.open(filepath) as filehandle:
             nb_ptc, nb_pc, nb_classes, tk_nextmove, tk_output = pickle.load(filehandle)
-        nb_numfeats = int(len(nb_ptc) / len(nb_pc))
+        nb_numfeats = len(nb_ptc) // len(nb_pc)
 
         # reconstruct pc and ptc
         nb_pc = np.array(nb_pc)
@@ -165,7 +165,7 @@ class LanguageIdentifier:
     def from_modelstring(cls, string, *args, **kwargs):
         # load data
         nb_ptc, nb_pc, nb_classes, tk_nextmove, tk_output = pickle.loads(bz2.decompress(base64.b64decode(string)))
-        nb_numfeats = int(len(nb_ptc) / len(nb_pc))
+        nb_numfeats = len(nb_ptc) // len(nb_pc)
 
         # reconstruct pc and ptc
         nb_pc = np.array(nb_pc)
@@ -229,7 +229,7 @@ class LanguageIdentifier:
             # to speed up processing.
             for lang in langs:
                 if lang not in nb_classes:
-                    raise ValueError("Unknown language code %s" % lang)
+                    raise ValueError(f"Unknown language code {lang}")
 
             subset_mask = np.fromiter((l in langs for l in nb_classes), dtype=bool)
             self.nb_classes = [c for c in nb_classes if c in langs]
@@ -409,10 +409,11 @@ def application(environ, start_response):
             # Unsupported method
             status = '405 Method Not Allowed'  # HTTP Status
             response = {
-              'responseData': None,
-              'responseStatus': 405,
-              'responseDetails': '%s not allowed' % environ['REQUEST_METHOD']
+                'responseData': None,
+                'responseStatus': 405,
+                'responseDetails': f"{environ['REQUEST_METHOD']} not allowed",
             }
+
 
         if data is not None:
             if path == 'detect':

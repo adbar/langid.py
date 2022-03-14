@@ -174,8 +174,15 @@ def pass_tokenize(chunk_items):
 
     # Output the counts to the relevant bucket files.
     __procname = mp.current_process().name
-    b_freq_lang = [gzip.open(os.path.join(p,__procname+'.lang'),'a') for p in __b_dirs]
-    b_freq_domain = [gzip.open(os.path.join(p,__procname+'.domain'),'a') for p in __b_dirs]
+    b_freq_lang = [
+        gzip.open(os.path.join(p, f'{__procname}.lang'), 'a') for p in __b_dirs
+    ]
+
+    b_freq_domain = [
+        gzip.open(os.path.join(p, f'{__procname}.domain'), 'a')
+        for p in __b_dirs
+    ]
+
 
     for term in term_lng_freq:
         bucket_index = hash(term) % len(b_freq_lang)

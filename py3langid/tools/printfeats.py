@@ -22,10 +22,7 @@ if __name__ == "__main__":
     n = args.number if args.number is not None else len(w)
 
     def show(feat):
-        if args.printfeat:
-            return feat
-        else:
-            return repr(feat)
+        return feat if args.printfeat else repr(feat)
 
     if args.column is not None:
         for key in sorted(w, key=lambda x:w[x][args.column], reverse=True)[:n]:

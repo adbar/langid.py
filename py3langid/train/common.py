@@ -135,13 +135,10 @@ def MapPool(processes=None, initializer=None, initargs=None, maxtasksperchild=No
 
     if processes > 1:
         with closing( mp.Pool(processes, initializer, initargs, maxtasksperchild)) as pool:
-            f = lambda fn, chunks: pool.imap_unordered(fn, chunks, chunksize=chunksize)
-            yield f
+            yield lambda fn, chunks: pool.imap_unordered(fn, chunks, chunksize=chunksize)
     else:
         if initializer is not None:
             initializer(*initargs)
-        f = imap
-        yield f
-
+        yield imap
     if processes > 1:
         pool.join()
