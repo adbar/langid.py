@@ -12,9 +12,15 @@ from py3langid.langid import LanguageIdentifier, MODEL_FILE
 def test_langid():
     '''Test if the language detection functions work'''
     # basic classification
+    text = b'This text is in English.'
+    assert langid.classify(text)[0] == 'en'
+    assert langid.rank(text)[0][0] == 'en'
     text = 'This text is in English.'
     assert langid.classify(text)[0] == 'en'
     assert langid.rank(text)[0][0] == 'en'
+    text = 'Test Unicode sur du texte en français'
+    assert langid.classify(text)[0] == 'fr'
+    assert langid.rank(text)[0][0] == 'fr'
     # normalization of probabilities
     identifier = LanguageIdentifier.from_pickled_model(MODEL_FILE, norm_probs=True)
     _, prob = identifier.classify(text)

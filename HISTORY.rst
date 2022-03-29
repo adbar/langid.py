@@ -3,6 +3,13 @@ History
 =======
 
 
+0.2.0
+-----
+
+* Change Numpy data type for features (``uint32`` → ``uint16``)
+* Code cleaning
+
+
 0.1.2
 -----
 

@@ -6,11 +6,11 @@ include HISTORY.rst
 include LICENSE
 include README.rst
 
-recursive-exclude * __pycache__
-recursive-exclude * *.py[co]
-
 graft py3langid/data/
 graft tests/
+
+recursive-exclude * __pycache__
+recursive-exclude * *.py[co]
 
 # recursive-include conf.py Makefile make.bat *.jpg *.png *.gif
 # recursive-include docs *.rst

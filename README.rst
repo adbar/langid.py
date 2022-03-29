@@ -14,8 +14,11 @@ Changes in this fork
 
 Execution speed has been improved and the code base has been optimized for Python 3.6+:
 
-- Loading the module with ``import`` is now about 10x faster
-- Language detection with ``langid.classify`` is now about 2.5x faster
+- Import: Loading the package (``import py3langid``) is about 30% faster
+- Startup: Loading the default classification model is 20-25x faster
+- Execution: Language detection with ``langid.classify`` is 5-6x faster on paragraphs (less on longer texts)
+
+For implementation details see this blog post: `How to make language detection with langid.py faster <https://adrien.barbaresi.eu/blog/language-detection-langid-py-faster.html>`_.
 
 
 Usage
@@ -73,6 +76,13 @@ More options:
     ('en', 1.0)
 
 
+Note: the Numpy data type for the feature vector has been changed to optimize for speed. If results are inconsistent, try restoring the original setting:
+
+.. code-block:: python
+
+    >>> langid.classify(text, datatype='uint32')
+
+
 On the command-line
 ~~~~~~~~~~~~~~~~~~~
 
@@ -86,7 +96,6 @@ On the command-line
     $ echo "This won't be recognized properly." | langid -n -l fr,it,tr
     ('it', 0.9703832808613264)
 
-(This might not work on Windows systems.)
 
 
 Legacy documentation
@@ -155,7 +164,6 @@ optional arguments:
                         (e.g en,de)
   -r, --remote          auto-detect IP address for remote access
   -b, --batch           specify a list of files on the command line
-  --demo                launch an in-browser demo application
   -d, --dist            show full distribution over languages
   -u URL, --url=URL     langid of URL
   --line                process pipes line-by-line rather than as a document
