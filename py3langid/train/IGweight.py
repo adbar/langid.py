@@ -129,7 +129,7 @@ def pass_IG(bucket):
     else:
         # binarized event space
         # Compute IG binarized with respect to each event
-        ig = list()
+        ig = []
         for event_id in xrange(num_event):
             num_doc = __dist.sum()
             prior = numpy.array((num_doc - __dist[event_id], __dist[event_id]), dtype=float) / num_doc
@@ -195,11 +195,7 @@ if __name__ == "__main__":
     if not(args.domain or args.lang) or (args.domain and args.lang):
         parser.error("exactly one of domain(-d) or language (-l) must be specified")
 
-    if args.features:
-        feature_path = args.features
-    else:
-        feature_path = os.path.join(args.model, 'DFfeats')
-
+    feature_path = args.features or os.path.join(args.model, 'DFfeats')
     bucketlist_path = os.path.join(args.model, 'bucketlist')
 
     if not os.path.exists(feature_path):
@@ -217,10 +213,9 @@ if __name__ == "__main__":
     else:
         raise ValueError("no event specified")
 
-    if args.weights:
-        weights_path = args.weights
-    else:
-        weights_path = os.path.join(args.model, 'IGweights' + suffix + ('.bin' if args.binarize else ''))
+    weights_path = args.weights or os.path.join(
+        args.model, f'IGweights{suffix}' + ('.bin' if args.binarize else '')
+    )
 
     # display paths
     print("model path:", args.model )

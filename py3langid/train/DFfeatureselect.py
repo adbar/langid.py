@@ -106,7 +106,7 @@ def ngram_select(doc_count, max_order=MAX_NGRAM_ORDER, tokens_per_order=TOKENS_P
     # Work out the set of features to compute IG
     features = set()
     for i in range(1, max_order+1):
-        d = dict( (k, doc_count[k]) for k in doc_count if len(k) == i)
+        d = {k: doc_count[k] for k in doc_count if len(k) == i}
         features |= set(sorted(d, key=d.get, reverse=True)[:tokens_per_order])
     features = sorted(features)
 
@@ -133,11 +133,7 @@ if __name__ == "__main__":
     if not(args.tokens) and not(args.tokens_per_order):
         args.tokens_per_order = TOKENS_PER_ORDER
 
-    if args.features:
-        feature_path = args.features
-    else:
-        feature_path = os.path.join(args.model, 'DFfeats')
-
+    feature_path = args.features or os.path.join(args.model, 'DFfeats')
     bucketlist_path = os.path.join(args.model, 'bucketlist')
 
     # display paths

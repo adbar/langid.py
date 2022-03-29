@@ -88,10 +88,10 @@ class CorpusIndexer(object):
             self.domain_index = defaultdict(Enumerator())
         else:
             # pre-specified domain set
-            self.domain_index = dict((k,v) for v,k in enumerate(domains))
+            self.domain_index = {k: v for v,k in enumerate(domains)}
 
         self.coverage_index = defaultdict(set)
-        self.items = list()
+        self.items = []
 
         self.index(root)
         self.prune_min_domain(self.min_domain)
@@ -136,15 +136,14 @@ class CorpusIndexer(object):
         for langs in self.coverage_index.values():
             for lang in langs:
                 lang_domain_count[lang] += 1
-        reject_langs = set( l for l in lang_domain_count if lang_domain_count[l] < min_domain)
-
-        # Remove the languages from the indexer
-        if reject_langs:
+        if reject_langs := {
+            l for l in lang_domain_count if lang_domain_count[l] < min_domain
+        }:
             #print "reject (<{0} domains): {1}".format(min_domain, sorted(reject_langs))
-            reject_ids = set(self.lang_index[l] for l in reject_langs)
+            reject_ids = {self.lang_index[l] for l in reject_langs}
 
             new_lang_index = defaultdict(Enumerator())
-            lm = dict()
+            lm = {}
             for k,v in self.lang_index.items():
                 if v not in reject_ids:
                     new_id = new_lang_index[k]
@@ -212,11 +211,7 @@ if __name__ == "__main__":
     args = parser.parse_args()
 
     corpus_name = os.path.basename(args.corpus)
-    if args.model:
-        model_dir = args.model
-    else:
-        model_dir = os.path.join('.', corpus_name+'.model')
-
+    model_dir = args.model or os.path.join('.', f'{corpus_name}.model')
     makedir(model_dir)
 
     langs_path = os.path.join(model_dir, 'lang_index')
