@@ -98,8 +98,7 @@ class CorpusIndexer(object):
             # root supplied was the root of a directory structure
             candidates = []
             for dirpath, dirnames, filenames in os.walk(root, followlinks=True):
-                for docname in filenames:
-                    candidates.append(os.path.join(dirpath, docname))
+                candidates.extend(os.path.join(dirpath, docname) for docname in filenames)
         else:
             # root supplied was a file, interpet as list of paths
             candidates = map(str.strip, open(root))
@@ -180,13 +179,9 @@ class CorpusIndexer(object):
         for langs in self.coverage_index.values():
             for lang in langs:
                 lang_domain_count[lang] += 1
-        reject_langs = {
-            l
-            for l in lang_domain_count if lang_domain_count[l] < min_domain
-        }
-
-        # Remove the languages from the indexer
-        if reject_langs:
+        if reject_langs := {
+            l for l in lang_domain_count if lang_domain_count[l] < min_domain
+        }:
             #print "reject (<{0} domains): {1}".format(min_domain, sorted(reject_langs))
             reject_ids = {self.lang_index[l] for l in reject_langs}
 

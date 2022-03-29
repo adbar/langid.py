@@ -55,7 +55,7 @@ r"sl|sm|sn|so|sr|ss|st|su|sv|sy|sz|tc|td|tf|tg|th|tj|tk|tl|tm|tn|to|tp|tr|tt|tv|
 r"va|vc|ve|vg|vi|vn|vu|wf|ws|ye|yt|za|zm|zw)"   #TODO: remove obscure country domains?
 urlStart2  = r"\b(?:[A-Za-z\d-])+(?:\.[A-Za-z0-9]+){0,3}\." + regex_or(commonTLDs, ccTLDs) + r"(?:\."+ccTLDs+r")?(?=\W|$)"
 urlBody    = r"(?:[^\.\s<>][^\s<>]*?)?"
-urlExtraCrapBeforeEnd = regex_or(punctChars, entity) + "+?"
+urlExtraCrapBeforeEnd = f'{regex_or(punctChars, entity)}+?'
 urlEnd     = r"(?:\.\.+|[<>]|\s|$)"
 url        = regex_or(urlStart1, urlStart2) + urlBody + "(?=(?:"+urlExtraCrapBeforeEnd+")?"+urlEnd+")"
 
@@ -102,33 +102,35 @@ s4 = r"(?:<|&lt;|>|&gt;)[\._-]+(?:<|&lt;|>|&gt;)"
 s5 = "(?:[.][_]+[.])"
 # myleott: in Python the (?i) flag affects the whole expression
 #basicface = "(?:(?i)" +bfLeft+bfCenter+bfRight+ ")|" +s3+ "|" +s4+ "|" + s5
-basicface = "(?:" +bfLeft+bfCenter+bfRight+ ")|" +s3+ "|" +s4+ "|" + s5
+basicface = f"(?:{bfLeft}{bfCenter}{bfRight})|{s3}|{s4}|{s5}"
 
 eeLeft = r"[＼\\ƪԄ\(（<>;ヽ\-=~\*]+"
 eeRight= u"[\\-=\\);'\u0022<>ʃ）/／ノﾉ丿╯σっµ~\\*]+".encode('utf-8')
 eeSymbol = r"[^A-Za-z0-9\s\(\)\*:=-]"
-eastEmote = eeLeft + "(?:"+basicface+"|" +eeSymbol+")+" + eeRight
+eastEmote = f'{eeLeft}(?:{basicface}|{eeSymbol})+{eeRight}'
 
-oOEmote = r"(?:[oO]" + bfCenter + r"[oO])"
+oOEmote = f"(?:[oO]{bfCenter}[oO])"
 
 
 emoticon = regex_or(
-        # Standard version  :) :( :] :D :P
-        "(?:>|&gt;)?" + regex_or(normalEyes, wink) + regex_or(noseArea,"[Oo]") + regex_or(tongue+r"(?=\W|$|RT|rt|Rt)", otherMouths+r"(?=\W|$|RT|rt|Rt)", sadMouths, happyMouths),
-
-        # reversed version (: D:  use positive lookbehind to remove "(word):"
-        # because eyes on the right side is more ambiguous with the standard usage of : ;
-        regex_or("(?<=(?: ))", "(?<=(?:^))") + regex_or(sadMouths,happyMouths,otherMouths) + noseArea + regex_or(normalEyes, wink) + "(?:<|&lt;)?",
-
-        #inspired by http://en.wikipedia.org/wiki/User:Scapler/emoticons#East_Asian_style
-        eastEmote.replace("2", "1", 1), basicface,
-        # iOS 'emoji' characters (some smileys, some symbols) [\ue001-\uebbb]
-        # TODO should try a big precompiled lexicon from Wikipedia, Dan Ramage told me (BTO) he does this
-
-        # myleott: o.O and O.o are two of the biggest sources of differences
-        #          between this and the Java version. One little hack won't hurt...
-        oOEmote
+    f"(?:>|&gt;)?{regex_or(normalEyes, wink)}"
+    + regex_or(noseArea, "[Oo]")
+    + regex_or(
+        tongue + r"(?=\W|$|RT|rt|Rt)",
+        otherMouths + r"(?=\W|$|RT|rt|Rt)",
+        sadMouths,
+        happyMouths,
+    ),
+    regex_or("(?<=(?: ))", "(?<=(?:^))")
+    + regex_or(sadMouths, happyMouths, otherMouths)
+    + noseArea
+    + regex_or(normalEyes, wink)
+    + "(?:<|&lt;)?",
+    eastEmote.replace("2", "1", 1),
+    basicface,
+    oOEmote,
 )
+
 
 Hearts = "(?:<+/?3+)+" #the other hearts are in decorations
 
@@ -188,11 +190,16 @@ Protected  = re.compile(
 # Note the 'smart quotes' (http://en.wikipedia.org/wiki/Smart_quotes)
 #edgePunctChars    = r"'\"“”‘’«»{}\(\)\[\]\*&" #add \\p{So}? (symbols)
 edgePunctChars    = u"'\"“”‘’«»{}\\(\\)\\[\\]\\*&" #add \\p{So}? (symbols)
-edgePunct    = "[" + edgePunctChars + "]"
+edgePunct = f"[{edgePunctChars}]"
 notEdgePunct = "[a-zA-Z0-9]" # content characters
 offEdge = r"(^|$|:|;|\s|\.|,)"  # colon here gets "(hello):" ==> "( hello ):"
-EdgePunctLeft  = re.compile(offEdge + "("+edgePunct+"+)("+notEdgePunct+")", re.UNICODE)
-EdgePunctRight = re.compile("("+notEdgePunct+")("+edgePunct+"+)" + offEdge, re.UNICODE)
+EdgePunctLeft = re.compile(
+    f'{offEdge}({edgePunct}+)({notEdgePunct})', re.UNICODE
+)
+
+EdgePunctRight = re.compile(
+    f"({notEdgePunct})({edgePunct}+){offEdge}", re.UNICODE
+)
 
 def splitEdgePunct(input):
     input = EdgePunctLeft.sub(r"\1\2 \3", input)
@@ -230,8 +237,7 @@ def simpleTokenize(text):
     # has an even length and no indices are the same
     indices = [0]
     for (first, second) in badSpans:
-        indices.append(first)
-        indices.append(second)
+        indices.extend((first, second))
     indices.append(textLength)
 
     # Group the indices and map them to their respective portion of the string
@@ -271,8 +277,7 @@ def squeezeWhitespace(input):
 
 # Final pass tokenization based on special patterns
 def splitToken(token):
-    m = Contractions.search(token)
-    if m:
+    if m := Contractions.search(token):
         return [m.group(1), m.group(2)]
     return [token]
 

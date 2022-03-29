@@ -112,7 +112,11 @@ def pass_tokenize(arg):
 
     # Distribute the aggregated counts into buckets
     __procname = mp.current_process().name
-    __buckets = [gzip.open(os.path.join(p,__procname+'.index'), 'a') for p in __b_dirs]
+    __buckets = [
+        gzip.open(os.path.join(p, f'{__procname}.index'), 'a')
+        for p in __b_dirs
+    ]
+
     bucket_count = len(__buckets)
     for doc_id, f_id in term_freq:
         bucket_index = hash(f_id) % bucket_count
