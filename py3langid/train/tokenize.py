@@ -110,8 +110,16 @@ def pass_tokenize(chunk_items):
     """
     global __maxorder, __b_dirs, __extractor, __sample_count, __sample_size
     __procname = mp.current_process().name
-    b_freq_lang = [tempfile.mkstemp(prefix=__procname+'-', suffix='.lang', dir=p)[0] for p in __b_dirs]
-    b_freq_domain = [tempfile.mkstemp(prefix=__procname+'-', suffix='.domain', dir=p)[0] for p in __b_dirs]
+    b_freq_lang = [
+        tempfile.mkstemp(prefix=f'{__procname}-', suffix='.lang', dir=p)[0]
+        for p in __b_dirs
+    ]
+
+    b_freq_domain = [
+        tempfile.mkstemp(prefix=f'{__procname}-', suffix='.domain', dir=p)[0]
+        for p in __b_dirs
+    ]
+
 
     extractor = __tokenizer
     term_lng_freq = defaultdict(lambda: defaultdict(int))
@@ -163,7 +171,15 @@ def build_index(items, tokenizer, outdir, buckets=NUM_BUCKETS, jobs=None, chunks
     if jobs is None:
         jobs = mp.cpu_count() + 4
 
-    b_dirs = [ tempfile.mkdtemp(prefix="tokenize-",suffix='-{0}'.format(tokenizer.__class__.__name__), dir=outdir) for i in range(buckets) ]
+    b_dirs = [
+        tempfile.mkdtemp(
+            prefix="tokenize-",
+            suffix='-{0}'.format(tokenizer.__class__.__name__),
+            dir=outdir,
+        )
+        for _ in range(buckets)
+    ]
+
 
     # PASS 1: Tokenize documents into sets of terms
 
@@ -211,10 +227,7 @@ if __name__ == "__main__":
 
     args = parser.parse_args()
 
-    if args.temp:
-        buckets_dir = args.temp
-    else:
-        buckets_dir = os.path.join(args.model, 'buckets')
+    buckets_dir = args.temp or os.path.join(args.model, 'buckets')
     makedir(buckets_dir)
 
     bucketlist_path = os.path.join(args.model, 'bucketlist')
@@ -242,7 +255,7 @@ if __name__ == "__main__":
         tokenizer = str.split
         print("using str.split to tokenize")
     else:
-        max_order = args.max_order if args.max_order else MAX_NGRAM_ORDER
+        max_order = args.max_order or MAX_NGRAM_ORDER
         tokenizer = NGramTokenizer(1,max_order)
         print("using n-gram tokenizer: max_order({0})".format(max_order))
     b_dirs = build_index(items, tokenizer, buckets_dir, args.buckets, args.jobs, args.chunksize, args.sample_count, args.sample_size)

@@ -35,9 +35,10 @@ def chunk(seq, chunksize):
     """
     seq_iter = iter(seq)
     while True:
-        chunk = tuple(islice(seq_iter, chunksize))
-        if not chunk: break
-        yield chunk
+        if chunk := tuple(islice(seq_iter, chunksize)):
+            yield chunk
+        else:
+            break
 
 def unmarshal_iter(path):
     """
@@ -131,13 +132,10 @@ def MapPool(processes=None, initializer=None, initargs=None, maxtasksperchild=No
 
     if processes > 1:
         with closing( mp.Pool(processes, initializer, initargs, maxtasksperchild)) as pool:
-            f = lambda fn, chunks: pool.imap_unordered(fn, chunks, chunksize=chunksize)
-            yield f
+            yield lambda fn, chunks: pool.imap_unordered(fn, chunks, chunksize=chunksize)
     else:
         if initializer is not None:
             initializer(*initargs)
-        f = imap
-        yield f
-
+        yield imap
     if processes > 1:
         pool.join()
