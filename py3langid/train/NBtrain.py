@@ -58,8 +58,7 @@ from .common import chunk, unmarshal_iter, MapPool
 def offsets(chunks):
     # Work out the path chunk start offsets
     chunk_offsets = [0]
-    for c in chunks:
-        chunk_offsets.append(chunk_offsets[-1] + len(c))
+    chunk_offsets.extend(chunk_offsets[-1] + len(c) for c in chunks)
     return chunk_offsets
 
 def state_trace(path):
@@ -154,8 +153,7 @@ def learn_pc(cm):
     @returns nb_pc: log(P(C))
     """
     pc = np.log(cm.sum(0))
-    nb_pc = array.array('d', pc)
-    return nb_pc
+    return array.array('d', pc)
 
 def generate_cm(items, num_classes):
     """
@@ -185,7 +183,11 @@ def learn_ptc(paths, tk_nextmove, tk_output, cm, temp_path, args):
         chunksize = min(len(paths) / (mp.cpu_count()*2), args.chunksize)
 
     # TODO: Set the output dir
-    b_dirs = [ tempfile.mkdtemp(prefix="train-",suffix='-bucket', dir=temp_path) for i in range(args.buckets) ]
+    b_dirs = [
+        tempfile.mkdtemp(prefix="train-", suffix='-bucket', dir=temp_path)
+        for _ in range(args.buckets)
+    ]
+
 
     output_states = set(tk_output)
 
@@ -240,21 +242,9 @@ if __name__ == "__main__":
     parser.add_argument("--buckets", type=int, metavar='N', help="distribute features into N buckets", default=NUM_BUCKETS)
     args = parser.parse_args()
 
-    if args.temp:
-        temp_path = args.temp
-    else:
-        temp_path = os.path.join(args.model, 'buckets')
-
-    if args.scanner:
-        scanner_path = args.scanner
-    else:
-        scanner_path = os.path.join(args.model, 'LDfeats.scanner')
-
-    if args.output:
-        output_path = args.output
-    else:
-        output_path = os.path.join(args.model, 'model')
-
+    temp_path = args.temp or os.path.join(args.model, 'buckets')
+    scanner_path = args.scanner or os.path.join(args.model, 'LDfeats.scanner')
+    output_path = args.output or os.path.join(args.model, 'model')
     index_path = os.path.join(args.model, 'paths')
     lang_path = os.path.join(args.model, 'lang_index')
 

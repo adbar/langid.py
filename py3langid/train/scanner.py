@@ -61,7 +61,7 @@ class Scanner(object):
         # tk_output is a mapping from state to a list of feature indices.
         # because of the way the scanner class is written, it needs a mapping
         # from state to the feature itself. We rebuild this here.
-        tk_output_f = dict( (k,[feats[i] for i in v]) for k,v in tk_output.iteritems() )
+        tk_output_f = {k: [feats[i] for i in v] for k,v in tk_output.iteritems()}
         scanner = cls.__new__(cls)
         scanner.__setstate__((tk_nextmove, tk_output_f))
         return scanner
@@ -73,8 +73,8 @@ class Scanner(object):
         return self.search(value)
 
     def build(self, keywords):
-        goto = dict()
-        fail = dict()
+        goto = {}
+        fail = {}
         output = defaultdict(set)
 
         # Algorithm 2
@@ -134,7 +134,7 @@ class Scanner(object):
 
         # convert the output to tuples, as tuple iteration is faster
         # than set iteration
-        self.output = dict((k, tuple(output[k])) for k in output)
+        self.output = {k: tuple(output[k]) for k in output}
 
         # Next move encoded as a single array. The index of the next state
         # is located at current state * alphabet size  + ord(c).
@@ -147,6 +147,7 @@ class Scanner(object):
                     for letter in self.alphabet:
                         yield self.nextmove[(state, letter)]
             return array.array(typecode, nextstate_iter())
+
         try:
             self.nm_arr = generate_nm_arr('H')
         except OverflowError:
@@ -173,8 +174,7 @@ class Scanner(object):
         state = 0
         for letter in map(ord,string):
             state = self.nm_arr[(state << 8) + letter]
-            for key in self.output.get(state, []):
-                yield key
+            yield from self.output.get(state, [])
 
 def build_scanner(features):
     """
@@ -196,9 +196,7 @@ def build_scanner(features):
 
     # tk_output is the output function of the scanner. It should generate indices into
     # the feature space directly, as this saves a lookup
-    tk_output = {}
-    for k,v in raw_output.items():
-        tk_output[k] = tuple(feat_index[f] for f in v)
+    tk_output = {k: tuple(feat_index[f] for f in v) for k, v in raw_output.items()}
     return tk_nextmove, tk_output
 
 
@@ -209,7 +207,7 @@ def index(seq):
     @param seq the sequence to index
     @returns a dictionary from item to position in the sequence
     """
-    return dict((k,v) for (v,k) in enumerate(seq))
+    return {k: v for (v,k) in enumerate(seq)}
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
@@ -222,11 +220,7 @@ if __name__ == "__main__":
     else:
         input_path = args.input
 
-    if args.output:
-        output_path = args.output
-    else:
-        output_path = input_path + '.scanner'
-
+    output_path = args.output or f'{input_path}.scanner'
     # display paths
     print("input path:", input_path)
     print("output path:", output_path)

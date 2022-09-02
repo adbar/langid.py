@@ -88,7 +88,7 @@ if __name__ == "__main__":
 
     lang_w_path = os.path.join(args.model, 'IGweights.lang.bin')
     domain_w_path = os.path.join(args.model, 'IGweights.domain')
-    feature_path = args.output if args.output else os.path.join(args.model, 'LDfeats')
+    feature_path = args.output or os.path.join(args.model, 'LDfeats')
 
     # display paths
     print("model path:", args.model)
@@ -97,11 +97,11 @@ if __name__ == "__main__":
     print("feature output path:", feature_path)
 
     lang_w = read_weights(lang_w_path)
-    domain_w = read_weights(domain_w_path) if not args.no_domain_ig else None
+    domain_w = None if args.no_domain_ig else read_weights(domain_w_path)
 
     features_per_lang = select_LD_features(lang_w, domain_w, args.feats_per_lang, ignore_domain=args.no_domain_ig)
     if args.per_lang:
-        with open(feature_path + '.perlang', 'w') as f:
+        with open(f'{feature_path}.perlang', 'w') as f:
             writer = csv.writer(f)
             for i in range(len(features_per_lang)):
                 writer.writerow(map(repr,features_per_lang[i]))
