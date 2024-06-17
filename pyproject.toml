@@ -1,0 +1,74 @@
+# https://pip.pypa.io/en/stable/reference/build-system/pyproject-toml/
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "py3langid"
+description = "Fork of the language identification tool langid.py, featuring a modernized codebase and faster execution times."
+readme = "README.rst"
+license = { text = "BSD" }
+dynamic = ["version"]
+requires-python = ">=3.8"
+authors = [
+  {name = "Marco Lui"},
+  {name = "Adrien Barbaresi", email = "barbaresi@bbaw.de"}
+]
+keywords=[
+    "language detection",
+    "language identification",
+    "langid",
+    "langid.py"
+]
+classifiers = [
+    # As from http://pypi.python.org/pypi?%3Aaction=list_classifiers
+    'Development Status :: 5 - Production/Stable',
+    #'Development Status :: 6 - Mature',
+    "Environment :: Console",
+    "Intended Audience :: Developers",
+    "Intended Audience :: Information Technology",
+    "Intended Audience :: Science/Research",
+    "License :: OSI Approved :: BSD License",
+    "Operating System :: MacOS :: MacOS X",
+    "Operating System :: Microsoft :: Windows",
+    "Operating System :: POSIX :: Linux",
+    "Programming Language :: Python",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.8",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Topic :: Scientific/Engineering :: Artificial Intelligence",
+    "Topic :: Text Processing :: Linguistic",
+]
+dependencies = [
+    "numpy >= 2.0.0"
+]
+
+# https://setuptools.pypa.io/en/latest/userguide/pyproject_config.html
+[tool.setuptools]
+packages = ["py3langid"]
+
+# https://packaging.python.org/en/latest/guides/single-sourcing-package-version/
+[tool.setuptools.dynamic]
+version = {attr = "py3langid.__version__"}
+
+[tool.setuptools.package-data]
+py3langid = ["data/model.plzma"]
+
+[project.scripts]
+langid = "py3langid.langid:main"
+
+[project.urls]
+"Homepage" = "https://github.com/adbar/py3langid"
+"Blog" = "https://adrien.barbaresi.eu/blog/language-detection-langid-py-faster.html"
+"Tracker" = "https://github.com/adbar/py3langid/issues"
+
+# Development extras
+[project.optional-dependencies]
+dev = [
+    "pytest",
+    "pytest-cov",
+]
