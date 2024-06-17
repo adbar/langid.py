@@ -44,8 +44,8 @@ classifiers = [
     "Topic :: Text Processing :: Linguistic",
 ]
 dependencies = [
-    "numpy >= 2.0.0 ; python_version >= 3.9",
-    "numpy >= 1.24.3 ; python_version == 3.8",
+    "numpy >= 2.0.0 ; python_version >= '3.9'",
+    "numpy >= 1.24.3 ; python_version == '3.8'",
 ]
 
 # https://setuptools.pypa.io/en/latest/userguide/pyproject_config.html
