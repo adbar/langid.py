@@ -17,6 +17,7 @@ import pickle
 
 from base64 import b64decode
 from collections import Counter
+from operator import itemgetter
 from pathlib import Path
 from urllib.parse import parse_qs
 
@@ -32,6 +33,9 @@ NORM_PROBS = False  # Normalize output probabilities.
 # NORM_PROBS defaults to False for a small speed increase. It does not
 # affect the relative ordering of the predicted classes. It can be
 # re-enabled at runtime - see the readme.
+
+# quantization: faster but less precise
+DATATYPE = "uint16"
 
 
 def load_model(path=None):
@@ -60,7 +64,7 @@ def set_languages(langs=None):
     return IDENTIFIER.set_languages(langs)
 
 
-def classify(instance, datatype='uint16'):
+def classify(instance, datatype=DATATYPE):
     """
     Convenience method using a global identifier instance with the default
     model included in langid.py. Identifies the language that a string is
@@ -214,7 +218,7 @@ class LanguageIdentifier:
             self.nb_ptc = nb_ptc[:, subset_mask]
             self.nb_pc = nb_pc[subset_mask]
 
-    def instance2fv(self, text, datatype='uint16'):
+    def instance2fv(self, text, datatype=DATATYPE):
         """
         Map an instance into the feature space of the trained model.
 
@@ -227,11 +231,12 @@ class LanguageIdentifier:
 
         # Convert the text to a sequence of ascii values and
         # Count the number of times we enter each state
-        state = 0
-        indexes = []
-        for letter in list(text):
+        state, indexes = 0, []
+        extend = indexes.extend
+
+        for letter in text:
             state = self.tk_nextmove[(state << 8) + letter]
-            indexes.extend(self.tk_output.get(state, []))
+            extend(self.tk_output.get(state, []))
 
         # datatype: consider that less feature counts are going to be needed
         arr = np.zeros(self.nb_numfeats, dtype=datatype)
@@ -247,7 +252,7 @@ class LanguageIdentifier:
         # compute the partial log-probability of the document in each class
         return pdc + self.nb_pc
 
-    def classify(self, text, datatype='uint16'):
+    def classify(self, text, datatype=DATATYPE):
         """
         Classify an instance.
         """
@@ -262,7 +267,7 @@ class LanguageIdentifier:
         """
         fv = self.instance2fv(text)
         probs = self.norm_probs(self.nb_classprobs(fv))
-        return [(str(k), float(v)) for (v, k) in sorted(zip(probs, self.nb_classes), reverse=True)]
+        return sorted(zip(self.nb_classes, probs), key=itemgetter(1), reverse=True)
 
     def cl_path(self, path):
         """
