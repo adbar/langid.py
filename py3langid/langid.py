@@ -202,9 +202,7 @@ class LanguageIdentifier:
         nb_ptc, nb_pc, nb_classes = self.__full_model
 
         if langs is None:
-            self.nb_classes = nb_classes
-            self.nb_ptc = nb_ptc
-            self.nb_pc = nb_pc
+            self.nb_classes, self.nb_ptc, self.nb_pc = nb_classes, nb_ptc, nb_pc
 
         else:
             # We were passed a restricted set of languages. Trim the arrays accordingly
@@ -213,7 +211,7 @@ class LanguageIdentifier:
                 if lang not in nb_classes:
                     raise ValueError(f"Unknown language code {lang}")
 
-            subset_mask = np.fromiter((l in langs for l in nb_classes), dtype=bool)
+            subset_mask = np.isin(nb_classes, langs)
             self.nb_classes = [c for c in nb_classes if c in langs]
             self.nb_ptc = nb_ptc[:, subset_mask]
             self.nb_pc = nb_pc[subset_mask]
