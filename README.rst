@@ -20,6 +20,8 @@ Execution speed has been improved and the code base has been optimized for Pytho
 
 For implementation details see this blog post: `How to make language detection with langid.py faster <https://adrien.barbaresi.eu/blog/language-detection-langid-py-faster.html>`_.
 
+For more information and older Python versions see `changelog <https://github.com/adbar/py3langid/blob/master/HISTORY.rst>`_.
+
 
 Usage
 -----
@@ -95,7 +97,6 @@ On the command-line
     # define a subset of target languages
     $ echo "This won't be recognized properly." | langid -n -l fr,it,tr
     ('it', 0.97038305)
-
 
 
 Legacy documentation

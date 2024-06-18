@@ -2,6 +2,13 @@
 History
 =======
 
+0.3.0
+-----
+
+* Modernized setup, dropped support for Python 3.6 & 3.7
+* Simplified inference code
+* Support for Numpy 2.0
+
 
 0.2.2
 -----
