@@ -284,6 +284,15 @@ class LanguageIdentifier:
         return path, retval
 
 
+class NumpyEncoder(json.JSONEncoder):
+    """ Custom encoder for numpy data types """
+    def default(self, obj):
+        if isinstance(obj, np.float32):
+            return float(obj)  # Convert float32 to native float
+        if isinstance(obj, np.ndarray):
+            return obj.tolist()  # Convert arrays to list
+        return json.JSONEncoder.default(self, obj)
+
 def application(environ, start_response):
     """
     WSGI-compatible langid web service.
@@ -349,7 +358,7 @@ def application(environ, start_response):
 
     headers = [('Content-type', 'text/javascript; charset=utf-8')]  # HTTP Headers
     start_response(status, headers)
-    return [json.dumps(response)]
+    return [json.dumps(response, cls=NumpyEncoder).encode('utf-8')]
 
 
 def main():
